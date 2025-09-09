@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: "en-US" }}">
+  <head>
+    <meta charset='utf-8'>
+    <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
+    <link rel="stylesheet" type="text/css" href="{{ '/assets/css/print.css' | relative_url }}" media="print">
+    <link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
+    <title>{{ page.title }}</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <!-- Removed site title -->
+          <h2>{{ page.description | default: site.description }}</h2>
+        </header>
+        <hr>
+
+        <section id="main_content">
+          {{ content }}
+        </section>
+
+        <footer>
+          <a href="https://github.com/gehu-gesu">@gehu-gesu</a>.
+        </footer>
+
+      </div>
+    </div>
+  </body>
+</html>
