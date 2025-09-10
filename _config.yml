@@ -3,3 +3,5 @@ theme: jekyll-theme-tactile
 
 sass:
   style: compressed
+
+markdown: kramdown

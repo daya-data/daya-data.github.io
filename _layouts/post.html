@@ -6,15 +6,23 @@
     <link rel="stylesheet" type="text/css" href="{{ '/assets/css/print.css' | relative_url }}" media="print">
     <link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
     <title>{{ page.title }}</title>
+
+    <style>
+      /* Only for blog posts */
+      body.post-page .inner {
+        width: 900px; /* wider container = smaller side margins */
+        max-width: 90%;
+        margin: 0 auto;
+      }
+    </style>
   </head>
 
-  <body>
+  <body class="post-page">
     <div id="container">
       <div class="inner">
 
         <header>
-          <!-- Removed site title -->
-	   <!-- Removed description -->
+          <!-- your header content -->
         </header>
         <hr>
 

@@ -5,27 +5,66 @@ header h1 a {
 
 /* Links */
 a {
-  color: #4A531E !important; /* normal links */
+  color: #A7282A !important; /* normal links */
 }
 
 a:visited {
-  color: #044322 !important; /* visited links */
+  color: #D9361E !important; /* visited links */
 }
 
 a:hover,
 a:focus {
-  color: #2E3810 !important; /* slightly darker on hover */
+  color: #4A531E !important; /* slightly darker on hover */
 }
 
 
 /* Page background */
 body {
-  background-color: #F1EAD7;
-  color: #755437; /* body text */
+    background:#F1EAD7 !important;
+    background-color:#F1EAD7 !important;
+    color:#755437;
 }
+#container {
+    background: #F1EAD7 !important;
+    background-color: #F1EAD7 !important;
+}
+
+
 
 /* Headings (site title and markdown headers) */
 h1, h2, h3, h4, h5, h6,
 header h1 a {
-    color: #A7282A !important;
+    color:#664121 !important;
+}
+
+/* Make all body text and lists use the same font weight */
+body, p, ul li, ol li, dl dt, dl dd {
+  font-weight: 300; /* match your body text */
+}
+
+strong {
+  font-weight: 400;
+}
+
+/* Make h5 look like the old bold (heavier weight) */
+h5 {
+  font-weight: 700;
+  font-size: 1em;  /* keep it same size as body text */
+  color: #303030;  /* keep existing color */
+}
+
+/* Change bullets */
+ul li,
+ol li {
+  list-style-position: outside;  /* bullet sits outside the text block */
+  padding-left: 5px;             /* shrink spacing before text */
+  margin-left: 1.2em;            /* controls how far bullet sticks into margin */
+}
+
+
+/* Add superscript */
+sup {
+  font-size: 0.75em;   /* make smaller */
+  vertical-align: super;
+  line-height: 0;      /* tighten spacing */
 }
