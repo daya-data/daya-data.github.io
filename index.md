@@ -3,17 +3,8 @@ layout: default
 ---
 
 ##### Shaina Rudman
-Shaina.Rudman@gmail.com
 
+<br/>
 
-This page outlines modeling efforts around the NYISO grid with a focus on forecasting and optimization for battery energy storage. Effective use of BESS is neccesary for the transition to renewable energy.
+This page outlines modeling efforts around the NYISO grid with a focus on forecasting and optimization for battery energy storage. Effective use of BESS is neccesary for the transition to renewable energy. This [post]({% post_url 2025-09-10-NYISO-Grid-and-Its-Future %}) discusses how the NYISO market functions, trends, and the future with a focus on battery energy storage systems (BESS).
 
-
-
-[title_of_first_blog_post](./first_blog_post.md)
-
-
-[title_of_second_blog_post](./second_blog_post.md)
-
-
-[title_of_third_blog_post](./third_blog_post.md)

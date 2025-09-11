@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset='utf-8'>
+    <link rel="stylesheet" href="/assets/css/style.css?v=c982dc06b3880475b573882edc5c8b53c4c8ad02">
+    <link rel="stylesheet" type="text/css" href="/assets/css/print.css" media="print">
+    <link rel="stylesheet" href="/assets/css/custom.css">
+    <title>NYISO Grid and Its Future</title>
+
+    <style>
+      /* Only for blog posts */
+      body.post-page .inner {
+        width: 900px; /* wider container = smaller side margins */
+        max-width: 90%;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+
+  <body class="post-page">
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <!-- your header content -->
+        </header>
+        <hr>
+
+        <section id="main_content">
+          <h1 id="from-generators-to-batteries-the-nyiso-grid-and-its-future">From Generators to Batteries: the NYISO Grid and Its Future</h1>
+<p><br /></p>
+
+<h5 id="what-is-nyiso">What is NYISO?</h5>
+<p><br />
+NYISO is the entity responsible for maintaining reliability and managing operations of the New York State electricity system. The system consists of:</p>
+
+<ul>
+  <li><strong>Generators</strong>: produce electricity (fossil fuels, renewables, nuclear).</li>
+  <li><strong>Transmission networks</strong>: transport electricity across the state</li>
+  <li><strong>Distribution systems</strong>: transport electricity to consumers</li>
+  <li><strong>Utilities and load-serving entities</strong>: coordinate the delivery and sale of electricity to consumers</li>
+  <li><strong>Consumers</strong>: produce demand for electricity</li>
+</ul>
+
+<p>NYISO coordinates this market to ensure that supply from generators meets demand from consumers with reliability and cost-effectiveness.</p>
+
+<h5 id="observations--trends-in-nyiso">Observations &amp; Trends in NYISO</h5>
+<p><br />
+The map below shows all market generators in the NYISO energy market<sup><a href="https://www.nyiso.com/documents/20142/2226333/2025-Gold-Book-Public.pdf">1</a></sup> in 2024. Broadly speaking: there are more fossil fuel generators downstate whereas renewables especially hydro tends to be concentrated upstate.</p>
+
+<iframe src="/assets/maps/nyiso_generators.html" width="100%" height="500" style="border:none;">
+</iframe>
+<p><br /></p>
+
+<p>NYISO’s analysis<sup><a href="https://www.nyiso.com/documents/20142/2223020/2025-Power-Trends.pdf">2</a></sup> has outlined several trends:</p>
+
+<ul>
+  <li><strong>Electrification</strong>: New York’s building decarbonization policies and electrification of heating will increase electricity demand</li>
+  <li><strong>Large new loads</strong>: Growth of data centers and AI/LLM workloads <em>could</em> significantly increase peak demand</li>
+  <li><strong>Aging fossil retirements</strong>: As older fossil units retire without immediate replacements, supply margins tighten</li>
+</ul>
+
+<p>We can anticipate <strong><em>increasing load demand</em></strong> with <strong><em>decreasing supply capability</em></strong>, putting NYISO in a tighter spot. NYISO forecasts that New York will soon become a <strong><em>winter peaking system</em></strong>—meaning annual peak demand will occur in winter due to heating loads rather than in the summer.</p>
+
+<h5 id="how-does-nyiso-manage-the-grid">How Does NYISO Manage the Grid?</h5>
+<p><br />
+NYISO coordinates electricity through three markets: energy, ancillary, and capacity.</p>
+
+<p><strong>Energy Markets</strong></p>
+
+<ul>
+  <li><strong>Day-Ahead Market (DAM)</strong>: Generators submit bids the day before (e.g., “X MW at $Y/MWh”) and then  NYISO runs an optimization to meet this demand with the cheapest combination of generators while taking into account transmission constraints.</li>
+  <li><strong>Real-Time Market (RTM)</strong>: Deals with differences between day-ahead forecasts and real-world conditions.</li>
+</ul>
+
+<p>The prices paid out to generators are <strong><em>nodal</em></strong> meaning based on the specific node associated with the location; whereas the price paid by the consumer are <strong><em>zonal</em></strong> meaning aggregated average of multiple nodal prices across a zone. One important caveat is that battery storage will be paid and pay the nodal prices <em>unless</em> they are behind-the-meter batteries which will buy from the utility and discharge for a more target purpose.</p>
+
+<p>Each location’s nodal price is called the <strong><em>Locational-Based Marginal Price (LBMP)</em></strong>, which accounts for:</p>
+
+<p>LBMP = Energy + Loss - Congestion</p>
+
+<p>The marginal energy price component is the price of the most expensive generator needed to meet demand. The marginal loss price component accounts for loss along the transmission for reasons such as heat dissipation. The marginal congestion component accounts for transmission limits (thermal, voltage, stability) which might require more expensive generators to be used.</p>
+
+<p>The plot below shows the components of the wholesale electricity prices paid to Astoria Energy’s natural gas generator in Queens, NY.</p>
+
+<iframe src="/assets/images/323677.html" width="100%" height="500" style="border:none;">
+</iframe>
+
+<p><strong>Ancillary Services Markets</strong></p>
+
+<p>This market is intended to ensure reliability without contributing towards load, instead ensuring proper frequency, voltage, and reserves for the grid. Some services are <strong><em>cost-based</em></strong> whereas others are <strong><em>market-based</em></strong> meaning that suppliers submit bids to meet ancillary service needs in a similar manner to the energy markets</p>
+
+<p><strong>Capacity Markets</strong></p>
+
+<p>Unlike ERCOT and CAISO, NYISO has a <strong><em>capacity market</em></strong> to ensure long-term reliability. Resources are procured months to years in advance to guarantee that forecasted peak load plus a reserve margin can always be met.For example, the Installed Capacity (ICAP) requirement for 2025/2026 is a <strong><em>24.4% reserve margin</em></strong>, with requirements for where this capacity must be located.</p>
+
+<h5 id="investment-and-the-role-of-bess">Investment and the Role of BESS</h5>
+<p><br />
+Battery Energy Storage Systems (BESS) can profit via arbitrage, meaning charging the battery when the price of electricity is low (such as at night) and then selling when the price is high (during the evening peak). However for NYISO there are also opportunities in the capacity and ancillary services markets.</p>
+
+<p>In markets with high price volatility (like ERCOT), arbitrage alone can be lucrative. NYISO’s lower volatility makes optimization across the three markets a better approach, considering the role of battery size and site location. This creates opportunities for investors who use <strong><em>forecasting and optimization models</em></strong> to minimize risk and maximize returns.</p>
+
+<h5 id="grid-stability-decarbonization-and-policy">Grid Stability, Decarbonization, and Policy</h5>
+<p><br />
+NYISO’s future is closely tied to New York State’s <strong><em>climate and clean energy goals</em></strong>. Policies targeting emissions reductions, renewable integration, and fossil retirements put pressure on the system to balance reliability with decarbonization.</p>
+
+<p>BESS is a necessary component to reduce reliance on fossil fuels, ensure grid reliability, and enable use of intermittent renewable energy. BESS and renewable investments play a critical role in this transition, but require:</p>
+
+<ul>
+  <li>A strong understanding of NYISO’s market systems</li>
+  <li>Sophisticated modeling tools to forecast demand, prices, and bidding behavior</li>
+  <li>Optimization approaches to determine where and how resources should participate</li>
+</ul>
+
+<h5 id="looking-ahead">Looking Ahead</h5>
+<p><br />
+Future posts will cover:</p>
+
+<ul>
+  <li><strong>Forecasting</strong>: energy prices, demand by subregion, bidding behavior, fuel prices, and weather impacts</li>
+  <li><strong>Optimization</strong>: strategies for arbitrage, capacity, and ancillary services across different battery sizes and sites</li>
+</ul>
+
+<p>Understanding the NYISO market structure can help us quantify electricity opportunities and risks in the future.</p>
+
+<p><br /></p>
+
+<p><sup>1</sup><a href="https://www.nyiso.com/documents/20142/2226333/2025-Gold-Book-Public.pdf"> NYISO 2025 Gold Book</a><br />
+<sup>2</sup><a href="https://www.nyiso.com/documents/20142/2223020/2025-Power-Trends.pdf"> NYISO 2025 Power Trends Report</a></p>
+
+
+        </section>
+
+        <footer>
+          <a href="mailto:shaina.rudman@gmail.com">Shaina.Rudman@gmail.com</a>.
+        </footer>
+
+      </div>
+    </div>
+  </body>
+</html>

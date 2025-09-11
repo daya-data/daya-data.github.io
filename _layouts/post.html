@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: "en-US" }}">
+  <head>
+    <meta charset='utf-8'>
+    <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
+    <link rel="stylesheet" type="text/css" href="{{ '/assets/css/print.css' | relative_url }}" media="print">
+    <link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
+    <title>{{ page.title }}</title>
+
+    <style>
+      /* Only for blog posts */
+      body.post-page .inner {
+        width: 900px; /* wider container = smaller side margins */
+        max-width: 90%;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+
+  <body class="post-page">
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <!-- your header content -->
+        </header>
+        <hr>
+
+        <section id="main_content">
+          {{ content }}
+        </section>
+
+        <footer>
+          <a href="mailto:shaina.rudman@gmail.com">Shaina.Rudman@gmail.com</a>.
+        </footer>
+
+      </div>
+    </div>
+  </body>
+</html>
