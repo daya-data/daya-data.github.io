@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset='utf-8'>
+    <link rel="stylesheet" href="/assets/css/style.css?v=e3a814226d5cc035d25cdc17b4b693f8197afb5c">
+    <link rel="stylesheet" type="text/css" href="/assets/css/print.css" media="print">
+    <link rel="stylesheet" href="/assets/css/custom.css">
+    <title>Arbitrage Optimization in NYISO</title>
+
+    <style>
+      /* Only for blog posts */
+      body.post-page .inner {
+        width: 900px; /* wider container = smaller side margins */
+        max-width: 90%;
+        margin: 0 auto;
+      }
+         .post-date {
+        font-size: 0.85em;
+        color: #666;
+        margin-bottom: 1.5em;
+      }
+    </style>
+  </head>
+
+  <body class="post-page">
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <!-- your header content -->
+        </header>
+        <hr>
+
+        <section id="main_content">
+          <h1 id="optimizing-arbitrage-in-wholesale-electricity-markets-a-toy-example">Optimizing arbitrage in wholesale electricity markets, a toy example</h1>
+<p><br /></p>
+<h5 id="arbitrage-in-wholesale-electricity-markets">Arbitrage in wholesale electricity markets</h5>
+<p><br />
+The concept of arbitrage for battery storage in wholesale electricity markets is simple: <strong><em>buy low, sell high</em></strong>. In practice this means charging when prices are low and discharging when prices are high. Optimization can allow us to determine the best possible charging and discharging schedule to maximize revenue.</p>
+
+<h5 id="how-does-arbitrage-work">How does arbitrage work?</h5>
+<p><br />
+In this toy example we start by looking at the day-ahead location-based marginal pricing (LBMP) prices for a particular reference bus over a three day period. A quick way to understand potential revenue is the price spread: the difference between the highest and lowest price. Larger spreads mean more arbitrage oppurtunity. Markets with more volatility, like ERCOT, often provide greater revenue potential.</p>
+<iframe src="/assets/images/DAM_arbitrage_example.html" width="100%" height="500" style="border:none;">
+</iframe>
+
+<h5 id="how-does-the-two-settlement-system-work">How does the two settlement system work?</h5>
+<p><br />
+Arbitrage in wholesale electricity markets may sound simple but there are a couple complicating factors. NYISO, like many ISOs/RTOs, has a two settlement system: the Day-Ahead Market (DAM) and the Real-Time Market (RTM).</p>
+
+<ul>
+  <li><strong>Day-Ahead Market (DAM):</strong> Bids are placed one day in advanced based on a day-ahead load forecasts. Commitments to generate or consume electricity are financially binding, so generators are paid the contacted amount even if actual load is different than the forecast.</li>
+  <li><strong>Real-Time Market (RTM):</strong> This market deals with transactions in real-time to account for differences between the foreacted load and the actual load.  If the NYISO has not procured enough electricity in the DAM to meet actual demand it can then procure it in the real-time market. Similarly, if there is a surplus then that electricity can be sold. RTM operates in 5 minute intervals with 15 minute real-time commitments. RTM volumes tend to be smaller but prices are more volatile.</li>
+</ul>
+
+<p>The plot below compares forecasted and actual load across NYISO over three days (not reference bus-specific).</p>
+<iframe src="/assets/images/forecasted_actual_load.html" width="100%" height="500" style="border:none;">
+</iframe>
+
+<p>A battery can participate in both markets: optimizing its day-ahead schedule, while also adjusting in real time when profitiable. The plot below shows DAM and RTM prices; note the greater volatility of RTM LBMPs.</p>
+<iframe src="/assets/images/day_ahead_and_rtm_prices" width="100%" height="500" style="border:none;">
+</iframe>
+
+<h5 id="why-this-is-just-a-toy-example">Why this is just a toy example</h5>
+<p><br />
+This post illustrates a simplified example of a hypothetical storage battery installed at a particular reference bus over three days. It is meant only for demonstration, not as a true revenue estimate. The goal is to showcase how mixed-integer linear programming (MILP) can be applied to opimize battery participation in NYISO markets.</p>
+
+<p>In this example we assume a 4-hour, 400 MWh battery with a 100 MW power rating. We assume a charge/discharge efficiency of 92%. The optimization determines charge/discharge schedule, state of charge, and which market the transactions take place in (DAM or RTM). A future post will dive into the technical details of how the optimization was implemented in Python with <code class="language-plaintext highlighter-rouge">cvxpy</code>.</p>
+
+<p>The optimization seeks to maximize profit defined as: revenue from selling minus cost of buying across both markets. The constraints of the optimization are:</p>
+<ul>
+  <li>The battery cannot simultaneously charge and discharge and must charge/discharge for at least an hour at a time</li>
+  <li>The battery is subject to the physical specifications outlined for both physical and market behavior (ie. it cannot charge more than its capacity, but it also cannot bid for more than its capacity if it expects the actual load to be less)</li>
+  <li>In the DAM market the battery cannot bid more than the hourly forecasted load</li>
+  <li>In the RTM market the battery cannot bid for more than the forecast-actual load delta</li>
+  <li>In the RTM the battery charge/discharge commitments must be at 15 minute marks on the hour</li>
+</ul>
+
+<h5 id="important-disclaimers">Important disclaimers</h5>
+<p><br />
+Here are some limitation to keep in mind:</p>
+<ul>
+  <li><strong>Perfect forecast:</strong> The battery “knows” all future prices, load forecasts, and actual loads. In reality, uncertainty makes optimization more complex and less profitable.</li>
+  <li><strong>Perfect bids:</strong> We assume the battery always clears the market and its bids do not affect prices. This is not a realistic assumption.</li>
+  <li><strong>Brief time period:</strong> This example covers a brief time period at one particular reference bus. In reality, price volatility can vary greatly.</li>
+  <li><strong>Energy market scope:</strong> This toy battery only participates in energy markets and ignores capacity and ancillary services markets, which can be significant sources of storage revenue. In practice, we can optimize across all three markets.</li>
+</ul>
+
+<p>In summation, the optimal strategy presented is not actually achievable.</p>
+
+<h5 id="optimal-toy-battery-behavior">Optimal toy battery behavior</h5>
+<p><br />
+Breaking down the results by market, starting with the DAM, the plot below shows optimal DAM transactions. Even partial charges or discharges can be optimal depending on price changes. When the battery charges, cumulative revenue decreases, when it discharges, revenue increases, with the slope based on the price changes at each hour.</p>
+<iframe src="/assets/images/DAM_transactions_revenue.html" width="100%" height="500" style="border:none;">
+</iframe>
+<p><br /></p>
+
+<p>The next plot shows optimal RTM transactions. The behavior is similar to the DAM but prices are more erratic. In the RTM, batteries can only buy or sell as much electricity as the delta between the forecasted load and actual load; this is an additional constraint that does not apply to the DAM.</p>
+<iframe src="/assets/images/rtm_performance.html" width="100%" height="500" style="border:none;">
+</iframe>
+<p><br />
+Finally, this plot shows cumulative revenue over the three day period, with both DAM and RTM revenues contributing. In practice, no battery can perfectly exploid both markets at once, but optimization illustrates what’s possible under idealized asumptions.The <strong><em>total optimal revenue</em></strong> for this period is: $41k.</p>
+<iframe src="/assets/images/opt_performance.html" width="100%" height="500" style="border:none;">
+</iframe>
+<p><br /></p>
+
+<p>Once again, this is a simplified, illustrative toy example and does not reflect actual achievable revenues.</p>
+
+<h4 id="from-toy-example-to-real-world-complexity">From toy example to real-world complexity</h4>
+<p><br />
+This toy example shows how optimization can guide battery behavior in NYISO’s two settlement system. Optimizing revenue is not just about buying high and selling low as there is an oppurtunity cost to every transaction. Forecasting and optimization have the potential to improve revenue oppurtunities and reduce risk in battery investment.</p>
+
+<p>Future posts will focus on:</p>
+<ol>
+  <li><strong>Implementation details</strong>: optimization assumptions, constraints, and set-up</li>
+  <li><strong>Location impacts</strong>: how siting affects results</li>
+  <li><strong>Forecasting</strong>: predicting electricity prices and optimizing under uncertainty</li>
+</ol>
+
+<p>Thank you for reading!</p>
+
+	 <p class="post-date">Published on September 15, 2025</p>
+        </section>
+
+        <footer>
+          <a href="mailto:shaina.rudman@gmail.com">Shaina.Rudman@gmail.com</a>.
+        </footer>
+
+      </div>
+    </div>
+  </body>
+</html>
