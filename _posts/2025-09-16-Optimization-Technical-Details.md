@@ -44,11 +44,9 @@ A battery is a physical system. It stores energy in MWh and delivers power in MW
 The actions of the battery are constrained by:
 ```python
 constraints += [
-     c_DA[h] <= p_max * uc_DA[h],
+     c_DA[h] <= p_max * uc_DA[h], # charging/discharging
      d_DA[h] <= p_max * ud_DA[h], 
-     uc_DA[h] + ud_DA[h] <= 1,  # no simultaneous charging and discharging 
-     c_DA[h] <= p_max, # charging/discharging 
-     d_DA[h] <= p_max
+     uc_DA[h] + ud_DA[h] <= 1  # no simultaneous charging and discharging 
 ]
 ```
 where `c_DA` and `d_DA` are charging/discharging behavior, `p_max` is the physical power rating of the battery, and `uc_DA` is the binary charging on/off switch.

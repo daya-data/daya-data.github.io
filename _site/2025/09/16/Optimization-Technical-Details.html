@@ -2,7 +2,7 @@
 <html lang="en-US">
   <head>
     <meta charset='utf-8'>
-    <link rel="stylesheet" href="/assets/css/style.css?v=75fda9c399399f3ffb76dbb55365f56b3f6a4595">
+    <link rel="stylesheet" href="/assets/css/style.css?v=caa79efcdccfdc7fc3242e576dac17c2d109f11b">
     <link rel="stylesheet" type="text/css" href="/assets/css/print.css" media="print">
     <link rel="stylesheet" href="/assets/css/custom.css">
     <title>BESS Optimization Implementation</title>
@@ -73,12 +73,10 @@ The behavior of a battery in a wholesale electricity marketplace is governed by 
 
 <p>The actions of the battery are constrained by:</p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">constraints</span> <span class="o">+=</span> <span class="p">[</span>
-     <span class="n">c_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">p_max</span> <span class="o">*</span> <span class="n">uc_DA</span><span class="p">[</span><span class="n">h</span><span class="p">],</span>
-     <span class="n">d_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">p_max</span> <span class="o">*</span> <span class="n">ud_DA</span><span class="p">[</span><span class="n">h</span><span class="p">],</span> 
-     <span class="n">uc_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">+</span> <span class="n">ud_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span>  <span class="c1"># no simultaneous charging and discharging 
-</span>     <span class="n">c_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">p_max</span><span class="p">,</span> <span class="c1"># charging/discharging 
-</span>     <span class="n">d_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">p_max</span>
-<span class="p">]</span>
+     <span class="n">c_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">p_max</span> <span class="o">*</span> <span class="n">uc_DA</span><span class="p">[</span><span class="n">h</span><span class="p">],</span> <span class="c1"># charging/discharging
+</span>     <span class="n">d_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">p_max</span> <span class="o">*</span> <span class="n">ud_DA</span><span class="p">[</span><span class="n">h</span><span class="p">],</span> 
+     <span class="n">uc_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">+</span> <span class="n">ud_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span>  <span class="c1"># no simultaneous charging and discharging 
+</span><span class="p">]</span>
 </code></pre></div></div>
 <p>where <code class="language-plaintext highlighter-rouge">c_DA</code> and <code class="language-plaintext highlighter-rouge">d_DA</code> are charging/discharging behavior, <code class="language-plaintext highlighter-rouge">p_max</code> is the physical power rating of the battery, and <code class="language-plaintext highlighter-rouge">uc_DA</code> is the binary charging on/off switch.</p>
 
