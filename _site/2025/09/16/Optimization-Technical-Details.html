@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset='utf-8'>
+    <link rel="stylesheet" href="/assets/css/style.css?v=6fedd741ae49fb0aa6a836a6f877323654d76daf">
+    <link rel="stylesheet" type="text/css" href="/assets/css/print.css" media="print">
+    <link rel="stylesheet" href="/assets/css/custom.css">
+    <title>BESS Optimization Implementation</title>
+
+    <style>
+      /* Only for blog posts */
+      body.post-page .inner {
+        width: 900px; /* wider container = smaller side margins */
+        max-width: 90%;
+        margin: 0 auto;
+      }
+         .post-date {
+        font-size: 0.85em;
+        color: #666;
+        margin-bottom: 1.5em;
+      }
+    </style>
+  </head>
+
+  <body class="post-page">
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <!-- your header content -->
+        </header>
+        <hr>
+
+        <section id="main_content">
+          <h1 id="behind-the-optimization-how-the-toy-battery-milp-works">Behind the optimization: How the toy battery MILP works</h1>
+<p><br />
+This <a href="/2025/09/15/NYISO-Arbitrage-Optimization.html">previous post</a> walks through a simplified example of how a battery might optimize participation in NYISO’s day-ahead and real-time electricity markets. That post gave an overview of price spreads, the two-settlement system, and what optimal arbitrage looks like under idealized assumptions.</p>
+
+<p>This follow-up goes into more implementation details of the optimization done in Python using <a href="https://www.cvxpy.org/">cvxpy</a> for  mixed-integer linear program (MILP) optimization.</p>
+
+<h4 id="why-milp">Why MILP?</h4>
+<p><br />
+The goal of any form of arbitrage is to take advantage of changes in price to make money. This inherently lends itself to opimization as we seek to maximize an objective function while potential choices are subject to certain constraints.</p>
+
+<p>The complexity of the market system, number of variables (when to charge/discharge, how much, and in which market), as well as the physics of the battery can be represented via an optimization problem. MILPs are useful because they allow us to capture both the continuous flows of energy and the discrete market commitments at the same time. That’s why they are an appropriate tool for battery arbitrage. <code class="language-plaintext highlighter-rouge">cvxpy</code> provides a clean way to express these constraints, while handling the actual MILP solvers like GLPK, CBC, or Gurobi.</p>
+
+<h4 id="step-1-defining-the-decision-variables">Step 1: Defining the decision variables</h4>
+<p><br />
+The optimization decides on three main things:</p>
+<ol>
+  <li><strong>Day-Ahead actions</strong> – how much to charge or discharge each hour</li>
+  <li><strong>Real-Time actions</strong> – how much to adjust every 5 minutes</li>
+  <li><strong>State of Charge (SoC)</strong> – the evolving energy level of the battery</li>
+</ol>
+
+<h4 id="step-2-defining-the-objective-function">Step 2: Defining the objective function</h4>
+<p><br />
+The objective function will be money made by the battery. The profit is the sum over time of price sold at ($/MWh) times power sold (MW) minus price bought at times power bought- applied to both markets. The optimizer tries to maximize revenue:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">revenue_DA</span> <span class="o">=</span> <span class="n">cp</span><span class="p">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">p_DA</span> <span class="o">*</span> <span class="p">(</span><span class="n">d_DA</span> <span class="o">-</span> <span class="n">c_DA</span><span class="p">))</span>
+<span class="n">revenue_RT</span> <span class="o">=</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">cp</span><span class="p">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">p_RT</span> <span class="o">*</span> <span class="p">(</span><span class="n">d_RT</span> <span class="o">-</span> <span class="n">c_RT</span><span class="p">))</span>
+<span class="n">objective</span> <span class="o">=</span> <span class="n">revenue_DA</span> <span class="o">+</span> <span class="n">revenue_RT</span>
+</code></pre></div></div>
+<p>where <code class="language-plaintext highlighter-rouge">p_DA</code> is the price, <code class="language-plaintext highlighter-rouge">d_DA</code> is discharge quantity, and <code class="language-plaintext highlighter-rouge">c_DA</code> is charge quantity, with the same naming conventions for the real-time market. Keep in mind that DAM markets are hourly, whereas RTM markets are in 5 minute intervals therefore we include that in the calculation since LBMPs are in terms of $/MWh. That’s the “buy low, sell high” expressed mathematically.</p>
+
+<h4 id="step-3-defining-constraints">Step 3: Defining constraints</h4>
+<p><br />
+The behavior of a battery in a wholesale electricity marketplace is governed by the physics of the battery as well as the rules of the marketplace. These are then translated into constraints within our optimization framework.</p>
+
+<h5 id="physical-constraints">Physical Constraints</h5>
+
+<p>A battery is a physical system. It stores energy in MWh and delivers power in MW. Its state of change (SoC) evolves based on charging and discharing decisions. It is limited by its total capacity, power rating at which it can charge and discharge, and efficiency in doing so.</p>
+
+<p>The actions of the battery are constrained by:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">constraints</span> <span class="o">+=</span> <span class="p">[</span>
+     <span class="n">c_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">p_max</span> <span class="o">*</span> <span class="n">uc_DA</span><span class="p">[</span><span class="n">h</span><span class="p">],</span>
+     <span class="n">d_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">p_max</span> <span class="o">*</span> <span class="n">ud_DA</span><span class="p">[</span><span class="n">h</span><span class="p">],</span> 
+     <span class="n">uc_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">+</span> <span class="n">ud_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span>  <span class="c1"># no simultaeous charging and discharging 
+</span>     <span class="n">c_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">p_max</span><span class="p">,</span> <span class="c1"># charging/discharging 
+</span>     <span class="n">d_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">p_max</span>
+<span class="p">]</span>
+</code></pre></div></div>
+<p>where <code class="language-plaintext highlighter-rouge">c_DA</code> and <code class="language-plaintext highlighter-rouge">d_DA</code> are charging/discharging behavior, <code class="language-plaintext highlighter-rouge">p_max</code> is the physical power rating of the battery, and <code class="language-plaintext highlighter-rouge">uc_DA</code> is the binary charging on/off switch.</p>
+
+<p>The SoC is the amount of charge in the battery at any given time. When the battery discharges, the SoC will decrease, when it charges the SoC will increase. But it is constrained by the physical limits of the battery as well as reccomendations to not go all the way down to 0% or up to 100%. This constraint is expressed as:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">constraints</span> <span class="o">+=</span> <span class="p">[</span>
+    <span class="n">soc_DA</span><span class="p">[</span><span class="n">h</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">soc_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">+</span> <span class="n">eta_c</span> <span class="o">*</span> <span class="n">c_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">d_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">/</span> <span class="n">eta_d</span><span class="p">)</span>
+<span class="p">]</span>
+</code></pre></div></div>
+<p>Here, <code class="language-plaintext highlighter-rouge">eta_c</code> and <code class="language-plaintext highlighter-rouge">eta_d</code> represent round-trip efficiency losses.</p>
+
+<p>#####Market Constraints</p>
+
+<p>There are constraints rules associated with which actions the battery can take in the day-ahead and real-time markets. This toy model includes simplified versions of NYISO rules such as:</p>
+
+<ul>
+  <li><strong>Day-Ahead:</strong> You can’t bid more MW than the load forecast.</li>
+  <li><strong>Real-Time:</strong> Every 15-minute block must stick to a single mode (charging or discharging), and you can only move electricity equal to the forecast/actual load delta.</li>
+</ul>
+
+<p>To illustrate one of the constraints, here’s how a 5-minute step is constrained by the load delta in the real-time market:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="n">delta_load_5min</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="c1"># only charging allowed, up to the delta
+</span>    <span class="n">d_RT</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="n">c_RT</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">delta_load_5min</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+<span class="k">elif</span> <span class="n">delta_load_5min</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="c1"># only discharging allowed
+</span>    <span class="n">c_RT</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="n">d_RT</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="n">delta_load_5min</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+</code></pre></div></div>
+
+<h4 id="where-is-the-data-coming-from">Where is the data coming from?</h4>
+<p><br />
+In addition to the hypothetical parameteres of the battery and the NYISO market rules, optimizing arbitrage revenues also depends on the following data sources:</p>
+<ul>
+  <li>Day-ahead market prices</li>
+  <li>Real-time market prices</li>
+  <li>Day-ahead forecasted load</li>
+  <li>Real-time actual load</li>
+</ul>
+
+<p>These all come from NYISO publically available <a href="https://www.nyiso.com/energy-market-operational-data">data</a>.</p>
+
+<h4 id="results-and-whats-next">Results and what’s next</h4>
+<p><br />
+Running this toy example produces a charge/discharge schedule from which you can extrapolate a cumulative revenue curve like those shown in the previous post. Of course, real-world challenges (forecasting uncertainty, imperfect bids, market interactions) make things far trickier.</p>
+
+<p>Upcoming posts will cover:</p>
+
+<ul>
+  <li><strong>Location matters</strong> – how siting impacts revenue potential</li>
+  <li><strong>Forecasting under uncertainty</strong> – how to optimize when you <em>don’t</em> know future prices</li>
+  <li><strong>Going beyond just arbitrage</strong> – adding capacity and ancillary services markets into the mix</li>
+</ul>
+
+<p>Feel free to reach out if you would like more details about the reference bus that was used in the example.</p>
+
+
+	 <p class="post-date">Published on September 16, 2025</p>
+        </section>
+
+        <footer>
+          <a href="mailto:shaina.rudman@gmail.com">Shaina.Rudman@gmail.com</a>.
+        </footer>
+
+      </div>
+    </div>
+  </body>
+</html>

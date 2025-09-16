@@ -68,3 +68,10 @@ sup {
   vertical-align: super;
   line-height: 0;      /* tighten spacing */
 }
+
+/* Slightly reduce <br> spacing */
+br {
+  display: block;
+  margin: 0.25em 0;   /* default is ~0.5em equivalent */
+  line-height: 1;   /* instead of 1.5 */
+}
