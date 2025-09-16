@@ -2,7 +2,7 @@
 <html lang="en-US">
   <head>
     <meta charset='utf-8'>
-    <link rel="stylesheet" href="/assets/css/style.css?v=6fedd741ae49fb0aa6a836a6f877323654d76daf">
+    <link rel="stylesheet" href="/assets/css/style.css?v=75fda9c399399f3ffb76dbb55365f56b3f6a4595">
     <link rel="stylesheet" type="text/css" href="/assets/css/print.css" media="print">
     <link rel="stylesheet" href="/assets/css/custom.css">
     <title>BESS Optimization Implementation</title>
@@ -36,11 +36,11 @@
 <p><br />
 This <a href="/2025/09/15/NYISO-Arbitrage-Optimization.html">previous post</a> walks through a simplified example of how a battery might optimize participation in NYISO’s day-ahead and real-time electricity markets. That post gave an overview of price spreads, the two-settlement system, and what optimal arbitrage looks like under idealized assumptions.</p>
 
-<p>This follow-up goes into more implementation details of the optimization done in Python using <a href="https://www.cvxpy.org/">cvxpy</a> for  mixed-integer linear program (MILP) optimization.</p>
+<p>This follow-up goes into more implementation details of the optimization done in Python using <a href="https://www.cvxpy.org/">cvxpy</a> for  mixed-integer linear programming (MILP) optimization.</p>
 
 <h4 id="why-milp">Why MILP?</h4>
 <p><br />
-The goal of any form of arbitrage is to take advantage of changes in price to make money. This inherently lends itself to opimization as we seek to maximize an objective function while potential choices are subject to certain constraints.</p>
+The goal of any form of arbitrage is to take advantage of changes in price to make money. This inherently lends itself to optimization as we seek to maximize an objective function while potential choices are subject to certain constraints.</p>
 
 <p>The complexity of the market system, number of variables (when to charge/discharge, how much, and in which market), as well as the physics of the battery can be represented via an optimization problem. MILPs are useful because they allow us to capture both the continuous flows of energy and the discrete market commitments at the same time. That’s why they are an appropriate tool for battery arbitrage. <code class="language-plaintext highlighter-rouge">cvxpy</code> provides a clean way to express these constraints, while handling the actual MILP solvers like GLPK, CBC, or Gurobi.</p>
 
@@ -69,20 +69,20 @@ The behavior of a battery in a wholesale electricity marketplace is governed by 
 
 <h5 id="physical-constraints">Physical Constraints</h5>
 
-<p>A battery is a physical system. It stores energy in MWh and delivers power in MW. Its state of change (SoC) evolves based on charging and discharing decisions. It is limited by its total capacity, power rating at which it can charge and discharge, and efficiency in doing so.</p>
+<p>A battery is a physical system. It stores energy in MWh and delivers power in MW. Its state of charge (SoC) evolves based on charging and discharging decisions. It is limited by its total capacity, power rating at which it can charge and discharge, and efficiency in doing so.</p>
 
 <p>The actions of the battery are constrained by:</p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">constraints</span> <span class="o">+=</span> <span class="p">[</span>
      <span class="n">c_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">p_max</span> <span class="o">*</span> <span class="n">uc_DA</span><span class="p">[</span><span class="n">h</span><span class="p">],</span>
      <span class="n">d_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">p_max</span> <span class="o">*</span> <span class="n">ud_DA</span><span class="p">[</span><span class="n">h</span><span class="p">],</span> 
-     <span class="n">uc_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">+</span> <span class="n">ud_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span>  <span class="c1"># no simultaeous charging and discharging 
+     <span class="n">uc_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">+</span> <span class="n">ud_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span>  <span class="c1"># no simultaneous charging and discharging 
 </span>     <span class="n">c_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">p_max</span><span class="p">,</span> <span class="c1"># charging/discharging 
 </span>     <span class="n">d_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">p_max</span>
 <span class="p">]</span>
 </code></pre></div></div>
 <p>where <code class="language-plaintext highlighter-rouge">c_DA</code> and <code class="language-plaintext highlighter-rouge">d_DA</code> are charging/discharging behavior, <code class="language-plaintext highlighter-rouge">p_max</code> is the physical power rating of the battery, and <code class="language-plaintext highlighter-rouge">uc_DA</code> is the binary charging on/off switch.</p>
 
-<p>The SoC is the amount of charge in the battery at any given time. When the battery discharges, the SoC will decrease, when it charges the SoC will increase. But it is constrained by the physical limits of the battery as well as reccomendations to not go all the way down to 0% or up to 100%. This constraint is expressed as:</p>
+<p>The SoC is the amount of charge in the battery at any given time. When the battery discharges, the SoC will decrease, when it charges the SoC will increase. But it is constrained by the physical limits of the battery as well as recommendations to not go all the way down to 0% or up to 100%. This constraint is expressed as:</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">constraints</span> <span class="o">+=</span> <span class="p">[</span>
     <span class="n">soc_DA</span><span class="p">[</span><span class="n">h</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">soc_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">+</span> <span class="n">eta_c</span> <span class="o">*</span> <span class="n">c_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">d_DA</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">/</span> <span class="n">eta_d</span><span class="p">)</span>
@@ -90,9 +90,9 @@ The behavior of a battery in a wholesale electricity marketplace is governed by 
 </code></pre></div></div>
 <p>Here, <code class="language-plaintext highlighter-rouge">eta_c</code> and <code class="language-plaintext highlighter-rouge">eta_d</code> represent round-trip efficiency losses.</p>
 
-<p>#####Market Constraints</p>
+<h5 id="market-constraints">Market Constraints</h5>
 
-<p>There are constraints rules associated with which actions the battery can take in the day-ahead and real-time markets. This toy model includes simplified versions of NYISO rules such as:</p>
+<p>There are constraints and rules associated with which actions the battery can take in the day-ahead and real-time markets. This toy model includes simplified versions of NYISO rules such as:</p>
 
 <ul>
   <li><strong>Day-Ahead:</strong> You can’t bid more MW than the load forecast.</li>
@@ -113,7 +113,7 @@ The behavior of a battery in a wholesale electricity marketplace is governed by 
 
 <h4 id="where-is-the-data-coming-from">Where is the data coming from?</h4>
 <p><br />
-In addition to the hypothetical parameteres of the battery and the NYISO market rules, optimizing arbitrage revenues also depends on the following data sources:</p>
+In addition to the hypothetical parameters of the battery and the NYISO market rules, optimizing arbitrage revenues also depends on the following data sources:</p>
 <ul>
   <li>Day-ahead market prices</li>
   <li>Real-time market prices</li>
@@ -121,7 +121,7 @@ In addition to the hypothetical parameteres of the battery and the NYISO market 
   <li>Real-time actual load</li>
 </ul>
 
-<p>These all come from NYISO publically available <a href="https://www.nyiso.com/energy-market-operational-data">data</a>.</p>
+<p>These all come from NYISO publicly available <a href="https://www.nyiso.com/energy-market-operational-data">data</a>.</p>
 
 <h4 id="results-and-whats-next">Results and what’s next</h4>
 <p><br />
